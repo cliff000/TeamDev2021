@@ -1,7 +1,8 @@
 #include "DxLib.h"
-
-#define WINDOWSIZE_X 960
-#define WINDOWSIZE_Y 540
+#include "ObjectMgr.h"
+#include "Carriage.h"
+#include "EnemyFactory.h"
+#include "main.h"
 
 int road_grHandle;		//地面のグラフィック
 double road_y;			//地面のy座標
@@ -24,6 +25,8 @@ void MainGame_Init();
 void MainGame_Update();
 void MainGame_Draw();
 void counter(int num, int x, int y, int block_exRate);
+
+ObjectMgr *objectMgr = new ObjectMgr();
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ChangeWindowMode(TRUE), DxLib_Init(), SetDrawScreen(DX_SCREEN_BACK); //ウィンドウモード変更と初期化と裏画面設定
@@ -56,6 +59,9 @@ void MainGame_Init()
 	castle_length = speed * 10 * 60;	//城まで初期スピードで10秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
+	
+	objectMgr->add(new Carriage());
+	objectMgr->add(new EnemyFactory());
 }
 
 void MainGame_Update()
@@ -94,6 +100,8 @@ void MainGame_Update()
 	else {					//制限時間を超えた場合
 		castle_flag = 0;
 	}
+
+	objectMgr->update();
 }
 
 void MainGame_Draw()
@@ -111,6 +119,9 @@ void MainGame_Draw()
 	//城の描画
 	if (castle_flag == 1)
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y - WINDOWSIZE_Y / 2, 1, 0, castle_grHandle, 1);
+
+
+	objectMgr->draw();
 }
 
 void counter(int num, int x, int y, int block_exRate)		//数字を表示する関数、引数は先頭から表示する数字、x座標、y座標、表示倍率
