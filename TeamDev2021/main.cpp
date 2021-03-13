@@ -4,6 +4,8 @@ int road_grHandle;		//地面のグラフィック
 int road_y;			//地面のy座標
 int speed;			//速さ
 int carriage_grHandle;	//馬車のグラフィック
+int timer;				//時間制限用のタイマー
+int limit;				//制限時間
 
 void MainGame_Init();
 void MainGame_Update();
@@ -28,8 +30,10 @@ void MainGame_Init()
 {
 	SetTransColor(0, 255, 0);
 	road_grHandle = LoadGraph("Resource/Image/floor.png");
-	speed = 5;
+	speed = 5;				//スピードの初期化
 	carriage_grHandle = LoadGraph("Resource/Image/carriage.png");
+	timer = 0;				//タイマーの初期化
+	limit = 0;
 }
 
 void MainGame_Update()
@@ -37,6 +41,8 @@ void MainGame_Update()
 	road_y += speed;		//1フレームごとに地面をspeed分移動する
 	if (road_y >= 480)		//地面の座標が480を超えたら0に戻す
 		road_y = 0;
+	timer++;				//1フレームごとに1追加
+
 }
 
 void MainGame_Draw()
