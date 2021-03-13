@@ -9,8 +9,8 @@ Carriage::Carriage()
 	h = 100;
 	x = WINDOWSIZE_X / 2;
 	y = 360;
-	col->setPos(10, 0);
-	col->setSize(60, 200);
+	col->setPos(15, 0);
+	col->setSize(60, 240);
 	img = Image("Resource/Image/carriage.png");
 }
 
