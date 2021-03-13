@@ -21,14 +21,14 @@ Arrow::~Arrow()
 }
 
 void Arrow::update() {
-	x += 4 - side*8;
+	x += 8 - side*16;
 	if (x <= -w || x >= WINDOWSIZE_X + w)
 		mgr->del(this);
 }
 
 void Arrow::draw() {
 	img.draw(x, y, 1, PI/2 - side*PI, true, true);
-	//col->draw();
+	col->draw();
 }
 
 void Arrow::hitAction(GameObject* other) {

@@ -29,8 +29,8 @@ void counter(int num, int x, int y, int block_exRate);
 ObjectMgr *objectMgr = new ObjectMgr();
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	ChangeWindowMode(TRUE), DxLib_Init(), SetDrawScreen(DX_SCREEN_BACK); //ウィンドウモード変更と初期化と裏画面設定
 	SetGraphMode(WINDOWSIZE_X, WINDOWSIZE_Y, 16);
+	ChangeWindowMode(TRUE), DxLib_Init(), SetDrawScreen(DX_SCREEN_BACK); //ウィンドウモード変更と初期化と裏画面設定
 
 	MainGame_Init();
 
@@ -101,15 +101,15 @@ void MainGame_Update()
 		castle_flag = 0;
 	}
 
-	objectMgr->update();
+
+	objectMgr->update(); //オブジェクトのアップデート
 }
 
 void MainGame_Draw()
 {
-	//地面・馬車の描画
+	//地面の描画
 	DrawRotaGraph(WINDOWSIZE_X / 2, road_y - WINDOWSIZE_Y / 2, 1, 0, road_grHandle, 1);
 	DrawRotaGraph(WINDOWSIZE_X / 2, road_y + WINDOWSIZE_Y / 2, 1, 0, road_grHandle, 1);
-	DrawRotaGraph(WINDOWSIZE_X / 2, 360, 0.5, 0, carriage_grHandle, 1);
 	//マウスの描画
 	for (int i = 1; i < mouse_status_tmp; i++)
 		if(mouse_status <= 100)
@@ -121,7 +121,7 @@ void MainGame_Draw()
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y - WINDOWSIZE_Y / 2, 1, 0, castle_grHandle, 1);
 
 
-	objectMgr->draw();
+	objectMgr->draw();//オブジェクトの描画
 }
 
 void counter(int num, int x, int y, int block_exRate)		//数字を表示する関数、引数は先頭から表示する数字、x座標、y座標、表示倍率
