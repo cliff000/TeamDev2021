@@ -19,13 +19,16 @@ void Collider::update() {
 }
 
 void Collider::draw() {
-	DrawBox(getX1(), getY1(), getX2(), getY2(), 0xff0000, false);
+	DrawBox(getX() - w/2, getY() - h/2, getX() + w/2, getY() + h/2, 0xff0000, false);
 }
 
 bool Collider::collide(Collider* other)
 {
-	if (((other->getX1() > getX1() && other->getX1() < getX2()) || (other->getX2() > getX1() && other->getX2() < getX2())) &&
-		((other->getY1() > getY1() && other->getY1() < getY2()) || (other->getY2() > getY1() && other->getY2() < getY2()))) {
+	int dx = abs((int)(getX() - other->getX()));
+	int dy = abs((int)(getY() - other->getY()));
+	int ww = (w + other->getW()) / 2;
+	int hh = (h + other->getH()) / 2;
+	if (dx <= ww && dy <= hh) {
 		return true;
 	}
 	else {

@@ -24,7 +24,7 @@ void Carriage::update() {
 
 void Carriage::draw() {
 	img.draw(x, y, 0.5, 0, true, true);
-	col->draw();
+	//col->draw();
 }
 
 void Carriage::hitAction(GameObject* other) {
