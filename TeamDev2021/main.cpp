@@ -2,7 +2,7 @@
 #include "ObjectMgr.h"
 #include "Carriage.h"
 #include "EnemyFactory.h"
-#include "Block.h"
+#include "BlockFactory.h"
 #include "main.h"
 
 #define LINE_NUM 5			//ˆø‚­‚±‚Æ‚Ì‚Å‚«‚éü‚Ì–{”
@@ -101,8 +101,13 @@ void MainGame_Update()
 				line_count = 1;
 			mouse_status_tmp[line_count-1] = mouse_status;
 		}
-		else if(!(GetMouseInput() & MOUSE_INPUT_LEFT))
+		else if (!(GetMouseInput() & MOUSE_INPUT_LEFT)) {
+			if (line_count > 0 && mouse_status > 0) {
+				objectMgr->add(new BlockFactory(mouse_x[line_count - 1], mouse_y[line_count - 1], mouse_status));
+			}
 			mouse_status = 0;
+		}
+			
 		
 		for (int i = 0; i < LINE_NUM; i++)
 			line_clear(mouse_x[i], mouse_y[i], POINT_NUM, &mouse_status_tmp[i], &line_clear_timer[i], 100);
