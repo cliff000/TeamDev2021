@@ -2,16 +2,16 @@
 #include "GameObject.h"
 #include "Image.h"
 
-class Arrow :
+class Spotter :
 	public GameObject
 {
 protected:
 	Image img;
-	int side; //0だと左から、1だと右から飛んでくる
+	int side; //0だと左、1だと右
 
 public:
-	Arrow();
-	~Arrow();
+	Spotter();
+	~Spotter();
 
 	void update();
 	void draw();
