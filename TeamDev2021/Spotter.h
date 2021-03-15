@@ -8,6 +8,7 @@ class Spotter :
 protected:
 	Image img;
 	int side; //0‚¾‚Æ¶A1‚¾‚Æ‰E
+	int count = 0;
 
 public:
 	Spotter();

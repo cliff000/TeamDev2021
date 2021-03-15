@@ -11,8 +11,10 @@ protected:
 
 public:
 	Arrow();
+	Arrow(int side);
 	~Arrow();
 
+	void init();
 	void update();
 	void draw();
 	void hitAction(GameObject* other);

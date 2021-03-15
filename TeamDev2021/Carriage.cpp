@@ -8,7 +8,7 @@ Carriage::Carriage()
 	w = 100;
 	h = 100;
 	x = WINDOWSIZE_X / 2;
-	y = 360;
+	y = 600;
 	col->setPos(-12, 0);
 	col->setSize(70, 240);
 	img = Image("Resource/Image/carriage.png");
@@ -20,6 +20,9 @@ Carriage::~Carriage()
 }
 
 void Carriage::update() {
+	if (y > 360) {
+		y -= 3;
+	}
 }
 
 void Carriage::draw() {

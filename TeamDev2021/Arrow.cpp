@@ -4,15 +4,14 @@
 
 Arrow::Arrow()
 {
-	id = "Arrow";
-	w = 100;
-	h = 100;
 	side = GetRand(1);
-	x = side * (WINDOWSIZE_X + w) - w/2;
-	y = GetRand(WINDOWSIZE_Y - h) + h / 2;
-	col->setPos(0, 0);
-	col->setSize(80, 5);
-	img = Image("Resource/Image/arrow.png");
+	init();
+}
+
+Arrow::Arrow(int side)
+{
+	this->side = side;
+	init();
 }
 
 
@@ -20,8 +19,20 @@ Arrow::~Arrow()
 {
 }
 
+
+void Arrow::init() {
+	id = "Arrow";
+	w = 100;
+	h = 100;
+	x = side * (WINDOWSIZE_X + w) - w / 2;
+	y = GetRand(WINDOWSIZE_Y - 100 - h) + 100 + h / 2;
+	col->setPos(0, 0);
+	col->setSize(80, 5);
+	img = Image("Resource/Image/arrow.png");
+}
+
 void Arrow::update() {
-	x += 8 - side * 16;
+	x += 6 - side * 12;
 	if (x <= -w || x >= WINDOWSIZE_X + w)
 		mgr->del(this);
 }

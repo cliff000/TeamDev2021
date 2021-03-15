@@ -4,6 +4,7 @@
 #include "EnemyFactory.h"
 #include "BlockFactory.h"
 #include "main.h"
+#include "Button.h"
 
 #define LINE_NUM 5			//引くことのできる線の本数
 #define POINT_NUM 50		//引く線の座標を幾つ取るか
@@ -34,6 +35,7 @@ void counter(int num, int x, int y, int block_exRate);
 void line_clear(int mouse_x[], int mouse_y[], int num, int *mouse_status, int *clear_timer, int frame);	//描画した線を消す関数、引数は先頭から消す線のx座標、y座標、座標の個数、書き始めを知るためにフレームを格納した変数、時間計測の変数、消すまでのフレーム数
 
 ObjectMgr *objectMgr = new ObjectMgr();
+Button* menu = new Button(75, 50, 100, 50, "メニュー");
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	SetGraphMode(WINDOWSIZE_X, WINDOWSIZE_Y, 16);
@@ -75,6 +77,8 @@ void MainGame_Init()
 	
 	objectMgr->add(new Carriage());
 	objectMgr->add(new EnemyFactory());
+	objectMgr->add(menu);
+
 }
 
 void MainGame_Update()
