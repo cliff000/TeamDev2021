@@ -2,6 +2,7 @@
 #include "ObjectMgr.h"
 #include "Carriage.h"
 #include "EnemyFactory.h"
+#include "Block.h"
 #include "main.h"
 
 int road_grHandle;		//地面のグラフィック
@@ -60,6 +61,7 @@ void MainGame_Init()
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
 	
+	
 	objectMgr->add(new Carriage());
 	objectMgr->add(new EnemyFactory());
 }
@@ -79,8 +81,7 @@ void MainGame_Update()
 			mouse_status++;
 			mouse_status_tmp = mouse_status;
 		}
-		else if(!(GetMouseInput() & MOUSE_INPUT_LEFT))
-			mouse_status = 0;
+		
 		if (mouse_status == 1)
 			mouse_status_tmp = 0;
 
@@ -88,6 +89,25 @@ void MainGame_Update()
 		{
 			GetMousePoint(&mouse_x[mouse_status-1], &mouse_y[mouse_status-1]);
 		}
+
+		//マウスで描いた位置にブロック追加
+		if ((!(GetMouseInput() & MOUSE_INPUT_LEFT) && mouse_status > 2) || mouse_status == 100) {
+			int pre_block_num = 1;
+			for (int i = 2; i < mouse_status; i++) {
+				int dx = abs((int)(mouse_x[pre_block_num] - mouse_x[i]));
+				int dy = abs((int)(mouse_y[pre_block_num] - mouse_y[i]));
+				if (dx >= 50 || dy >= 50) {
+					int block_x = (mouse_x[pre_block_num] + mouse_x[i]) / 2;
+					int block_y = (mouse_y[pre_block_num] + mouse_y[i]) / 2;
+					int block_w = (dx < 50) ? 50 : dx;
+					int block_h = (dy < 50) ? 50 : dy;
+					objectMgr->add(new Block(block_x, block_y, block_w, block_h));
+					pre_block_num = i;
+				}
+			}
+			mouse_status = 0;
+		}
+
 		
 	}
 	else if (castle_flag == 1) {			//城に到達した場合
@@ -102,6 +122,8 @@ void MainGame_Update()
 	}
 
 
+	
+	
 	objectMgr->update(); //オブジェクトのアップデート
 }
 

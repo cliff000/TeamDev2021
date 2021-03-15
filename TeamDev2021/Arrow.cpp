@@ -32,6 +32,6 @@ void Arrow::draw() {
 }
 
 void Arrow::hitAction(GameObject* other) {
-	if (other->getID() == "Carriage")
+	if (other->getID() == "Carriage" || other->getID() == "Block")
 		mgr->del(this);
 }
