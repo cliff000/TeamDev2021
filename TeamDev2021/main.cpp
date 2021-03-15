@@ -2,6 +2,7 @@
 #include "ObjectMgr.h"
 #include "Carriage.h"
 #include "EnemyFactory.h"
+#include "Block.h"
 #include "main.h"
 
 #define LINE_NUM 5			//引くことのできる線の本数
@@ -71,6 +72,7 @@ void MainGame_Init()
 		line_clear_timer[i] = 0;
 	}
 	
+	
 	objectMgr->add(new Carriage());
 	objectMgr->add(new EnemyFactory());
 }
@@ -118,6 +120,8 @@ void MainGame_Update()
 	}
 
 
+	
+	
 	objectMgr->update(); //オブジェクトのアップデート
 }
 

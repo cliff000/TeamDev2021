@@ -48,7 +48,9 @@ void ObjectMgr::add(GameObject* obj) {
 }
 
 void ObjectMgr::del(GameObject* obj) {
-	delList.push_back(obj);
+	auto result = std::find(delList.begin(), delList.end(), obj);
+	if (result == delList.end())
+		delList.push_back(obj);
 }
 
 GameObject* ObjectMgr::getObject(const char* id) {

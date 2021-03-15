@@ -8,8 +8,10 @@ GameObject::GameObject()
 
 GameObject::~GameObject()
 {
-	delete col;
-	col = nullptr;
+	if (col != nullptr) {
+		delete col;
+		col = nullptr;
+	}
 }
 
 

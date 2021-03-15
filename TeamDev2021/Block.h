@@ -2,17 +2,21 @@
 #include "GameObject.h"
 #include "Image.h"
 
-class Arrow :
+class Block :
 	public GameObject
 {
 protected:
+	int alpha;
+	int count;
 	Image img;
-	int side; //0ÇæÇ∆ç∂Ç©ÇÁÅA1ÇæÇ∆âEÇ©ÇÁîÚÇÒÇ≈Ç≠ÇÈ
 
 public:
-	Arrow();
-	~Arrow();
+	Block();
+	Block(int x, int y);
+	Block(int x, int y, int w, int h);
+	~Block();
 
+	void init();
 	void update();
 	void draw();
 	void hitAction(GameObject* other);

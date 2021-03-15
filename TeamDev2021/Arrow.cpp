@@ -21,7 +21,7 @@ Arrow::~Arrow()
 }
 
 void Arrow::update() {
-	x += 8 - side*16;
+	x += 8 - side * 16;
 	if (x <= -w || x >= WINDOWSIZE_X + w)
 		mgr->del(this);
 }
@@ -32,6 +32,6 @@ void Arrow::draw() {
 }
 
 void Arrow::hitAction(GameObject* other) {
-	if (other->getID() == "Carriage")
+	if (other->getID() == "Carriage" || other->getID() == "Block")
 		mgr->del(this);
 }
