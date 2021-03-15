@@ -16,11 +16,11 @@ Spotter::Spotter()
 
 	if (side == 0) {
 		col->setPos(5, -5);
-		img = Image("Resource/Image/spotter_R.png");
+		img = Image("Resource/Image/spotter_L.png");
 	}
 	else {
 		col->setPos(-5, -5);
-		img = Image("Resource/Image/spotter_L.png");
+		img = Image("Resource/Image/spotter_R.png");
 	}
 }
 
@@ -35,7 +35,7 @@ void Spotter::update() {
 }
 
 void Spotter::draw() {
-	img.draw(x, y, 0.2, 0, true, true);
+	img.draw(x, y, 0.2, 0, true, false);
 	//col->draw();
 }
 

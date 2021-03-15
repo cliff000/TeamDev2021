@@ -27,8 +27,8 @@ void Arrow::update() {
 }
 
 void Arrow::draw() {
-	img.draw(x, y, 1, PI/2 - side*PI, true, true);
-	//col->draw();
+	img.draw(x, y, 1, PI/2 - side*PI, true, false);
+	col->draw();
 }
 
 void Arrow::hitAction(GameObject* other) {
