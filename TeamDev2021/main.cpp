@@ -4,6 +4,9 @@
 #include "EnemyFactory.h"
 #include "main.h"
 
+#define LINE_NUM 5			//ˆø‚­‚±‚Æ‚Ì‚Å‚«‚éü‚Ì–{”
+#define POINT_NUM 50		//ˆø‚­ü‚ÌÀ•W‚ğŠô‚Âæ‚é‚©
+
 int road_grHandle;		//’n–Ê‚ÌƒOƒ‰ƒtƒBƒbƒN
 double road_y;			//’n–Ê‚ÌyÀ•W
 double speed;			//‘¬‚³
@@ -16,15 +19,18 @@ int castle_grHandle;	//é‚ÌƒOƒ‰ƒtƒBƒbƒN
 double castle_y;		//é‚ÌyÀ•W
 int castle_length;		//é‚Ü‚Å‚Ì“¹‚Ì‚è‚Ì’·‚³
 int castle_flag;		//é“’Bƒtƒ‰ƒOA1‚Å“’B
-int mouse_x[100];
-int mouse_y[100];		//ƒ}ƒEƒX‚ÌxAyÀ•W‚Ì•Û‘¶
+int mouse_x[LINE_NUM][POINT_NUM];
+int mouse_y[LINE_NUM][POINT_NUM];		//ƒ}ƒEƒX‚ÌxAyÀ•W‚Ì•Û‘¶
 int mouse_status;		//ƒ}ƒEƒX‚ª‰½ƒtƒŒ[ƒ€‚ÌŠÔ‰EƒNƒŠƒbƒN‚³‚ê‚½‚©
-int mouse_status_tmp;	//ã‹L‚Æ‚Ù‚Ú“¯‚¶A‚à‚¤ˆê“x‰Ÿ‚³‚ê‚½ƒ^ƒCƒ~ƒ“ƒO‚Å‰Šú‰»
+int mouse_status_tmp[LINE_NUM];	//ã‹L‚Æ‚Ù‚Ú“¯‚¶A‚à‚¤ˆê“x‰Ÿ‚³‚ê‚½ƒ^ƒCƒ~ƒ“ƒO‚Å‰Šú‰»
+int line_count;			//Œ»İ‰½–{–Ú‚Ìü‚ğ‘‚¢‚Ä‚¢‚é‚©
+int line_clear_timer[LINE_NUM];	//ü‚ğŠÔŒo‰ß‚ÅÁ‚·‚½‚ß‚Ìƒ^ƒCƒ}[
 
 void MainGame_Init();
 void MainGame_Update();
 void MainGame_Draw();
 void counter(int num, int x, int y, int block_exRate);
+void line_clear(int mouse_x[], int mouse_y[], int num, int *mouse_status, int *clear_timer, int frame);	//•`‰æ‚µ‚½ü‚ğÁ‚·ŠÖ”Aˆø”‚Íæ“ª‚©‚çÁ‚·ü‚ÌxÀ•WAyÀ•WAÀ•W‚ÌŒÂ”A‘‚«n‚ß‚ğ’m‚é‚½‚ß‚ÉƒtƒŒ[ƒ€‚ğŠi”[‚µ‚½•Ï”AŠÔŒv‘ª‚Ì•Ï”AÁ‚·‚Ü‚Å‚ÌƒtƒŒ[ƒ€”
 
 ObjectMgr *objectMgr = new ObjectMgr();
 
@@ -56,9 +62,14 @@ void MainGame_Init()
 	run_length = 0;			//‘–‚Á‚½‹——£‚Ì‰Šú‰»
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//é‚ÌyÀ•W‚Ì‰Šú‰»
-	castle_length = speed * 10 * 60;	//é‚Ü‚Å‰ŠúƒXƒs[ƒh‚Å10•b‘–‚é‚Æ“’B
+	castle_length = speed * 20 * 60;	//é‚Ü‚Å‰ŠúƒXƒs[ƒh‚Å10•b‘–‚é‚Æ“’B
 	castle_flag = 0;		//é“’Bƒtƒ‰ƒO‚Ì‰Šú‰»
 	mouse_status = 0;
+	line_count = 1;
+	for (int i = 0; i < LINE_NUM; i++) {
+		mouse_status_tmp[i] = 0;
+		line_clear_timer[i] = 0;
+	}
 	
 	objectMgr->add(new Carriage());
 	objectMgr->add(new EnemyFactory());
@@ -75,21 +86,26 @@ void MainGame_Update()
 		if (run_length >= castle_length)
 			castle_flag = 1;					//é‚É“’B‚µ‚½ê‡é“’Bƒtƒ‰ƒO‚ğ1‚É
 		//ƒ}ƒEƒX‚Ìˆ—
-		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < 100) {			//ƒ}ƒEƒX‚Ì¶ƒNƒŠƒbƒN‚ª‰Ÿ‚³‚ê‚½ƒtƒŒ[ƒ€”‚ğ‘ª’è
-			mouse_status++;
-			mouse_status_tmp = mouse_status;
+		if (mouse_status > 0 && mouse_status <= POINT_NUM)	//¶ƒNƒŠƒbƒN‚ª‰Ÿ‚³‚ê‚Ä‚¢‚éŠÔƒ}ƒEƒX‚ÌÀ•W‚ğ•Û‘¶
+		{
+			GetMousePoint(&mouse_x[line_count-1][mouse_status - 1], &mouse_y[line_count-1][mouse_status - 1]);
+		}
+		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < POINT_NUM) {			//ƒ}ƒEƒX‚Ì¶ƒNƒŠƒbƒN‚ª‰Ÿ‚³‚ê‚½ƒtƒŒ[ƒ€”‚ğ‘ª’è
+			mouse_status++;									//ƒtƒŒ[ƒ€”‚ğŠi”[
+			if (mouse_status == 1) {
+				line_count++;
+			}
+			else if (line_count > LINE_NUM)
+				line_count = 1;
+			mouse_status_tmp[line_count-1] = mouse_status;
 		}
 		else if(!(GetMouseInput() & MOUSE_INPUT_LEFT))
 			mouse_status = 0;
-		if (mouse_status == 1)
-			mouse_status_tmp = 0;
-
-		if (mouse_status > 0 && mouse_status <= 100)	//¶ƒNƒŠƒbƒN‚ª‰Ÿ‚³‚ê‚Ä‚¢‚éŠÔƒ}ƒEƒX‚ÌÀ•W‚ğ•Û‘¶
-		{
-			GetMousePoint(&mouse_x[mouse_status-1], &mouse_y[mouse_status-1]);
-		}
 		
+		for (int i = 0; i < LINE_NUM; i++)
+			line_clear(mouse_x[i], mouse_y[i], POINT_NUM, &mouse_status_tmp[i], &line_clear_timer[i], 100);
 	}
+
 	else if (castle_flag == 1) {			//é‚É“’B‚µ‚½ê‡
 		if (speed > 0) {		//‚ä‚é‚­Œ¸‘¬
 			speed -= 0.1;
@@ -111,9 +127,20 @@ void MainGame_Draw()
 	DrawRotaGraph(WINDOWSIZE_X / 2, road_y - WINDOWSIZE_Y / 2, 1, 0, road_grHandle, 1);
 	DrawRotaGraph(WINDOWSIZE_X / 2, road_y + WINDOWSIZE_Y / 2, 1, 0, road_grHandle, 1);
 	//ƒ}ƒEƒX‚Ì•`‰æ
-	for (int i = 1; i < mouse_status_tmp; i++)
-		if(mouse_status <= 100)
-			DrawLineAA(mouse_x[i - 1], mouse_y[i - 1],mouse_x[i],mouse_y[i], GetColor(255, 0, 0), 1);
+	for (int j = 0; j < LINE_NUM; j++)
+		for (int i = 1; i < mouse_status_tmp[j] - 1; i++)
+			if (mouse_status <= POINT_NUM){
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], GetColor(255, 0, 0), 1);
+			}
+	//counter(line_clear_timer[4], WINDOWSIZE_X - 100, 100, 2);
+	/*counter(mouse_status_tmp[0], WINDOWSIZE_X - 100, 100, 2);
+	counter(mouse_status_tmp[1], WINDOWSIZE_X - 100, 150, 2);
+	counter(mouse_status_tmp[2], WINDOWSIZE_X - 100, 200, 2);
+	counter(mouse_status_tmp[3], WINDOWSIZE_X - 100, 250, 2);
+	counter(mouse_status_tmp[4], WINDOWSIZE_X - 100, 300, 2);
+	counter(mouse_x[3][1], WINDOWSIZE_X - 100, 400, 2);
+	counter(line_count, WINDOWSIZE_X - 100, 500, 2);*/
+
 	//ƒ^ƒCƒ}[‚Ì•`‰æ
 	counter((time_limit - timer) / 60, WINDOWSIZE_X - 100, 50, 2);
 	//é‚Ì•`‰æ
@@ -129,4 +156,20 @@ void counter(int num, int x, int y, int block_exRate)		//”š‚ğ•\¦‚·‚éŠÖ”Aˆø
 	DrawRotaGraph(x - 2 * (16) * block_exRate, y, block_exRate, 0, number_grHandle[num / 100], 1);
 	DrawRotaGraph(x - (16) * block_exRate, y, block_exRate, 0, number_grHandle [(num / 10) % 10] , 1);
 	DrawRotaGraph(x, y, block_exRate, 0, number_grHandle[(num) % 10], 1);
+}
+
+void line_clear(int *mouse_x, int *mouse_y, int num, int *mouse_status, int *clear_timer, int frame)	//•`‰æ‚µ‚½ü‚ğÁ‚·ŠÖ”Aˆø”‚Íæ“ª‚©‚çÁ‚·ü‚ÌxÀ•WAyÀ•WAÀ•W‚ÌŒÂ”A‘‚«n‚ß‚ğ’m‚é‚½‚ß‚ÉƒtƒŒ[ƒ€‚ğŠi”[‚µ‚½•Ï”AŠÔŒv‘ª‚Ì•Ï”AÁ‚·‚Ü‚Å‚ÌƒtƒŒ[ƒ€”
+{
+	if (*mouse_status != 0)
+	{
+		*clear_timer += 1;
+		if (*clear_timer >= frame) {
+			*mouse_status = 0;
+			*clear_timer = 0;
+			for (int i = 0; i < num; i++){
+				mouse_x[i] = 0;
+				mouse_y[i] = 0;
+			}
+		}
+	}
 }
