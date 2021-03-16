@@ -41,7 +41,7 @@ void Block::init() {
 	alpha = 255;
 	col->setPos(0, 0);
 	col->setSize(50, 50);
-	img = Image("Resource/Image/block.jpg");
+	//img = Image("Resource/Image/block.jpg");
 }
 
 void Block::update() {
@@ -62,15 +62,22 @@ void Block::update() {
 			alpha -= 5;
 		}
 	}
+
 }
 
 void Block::draw() {
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-	DrawBox(x - w/2, y - h/2, x + w/2, y + h/2, 0xffffff, true);
+	DrawBox(x - w/2, y - h/2, x + w/2, y + h/2, color, true);
 	//img.draw(x, y, 0.148, 0, true, true);
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 	//col->draw();
 }
 
 void Block::hitAction(GameObject* other) {
+	if (other->getID() == "Carriage")
+		mgr->del(this);
+}
+
+void Block::setColor(int color) {
+	this->color = color;
 }

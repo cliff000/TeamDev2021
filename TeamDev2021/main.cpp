@@ -1,9 +1,9 @@
 #include "DxLib.h"
+#include "main.h"
 #include "ObjectMgr.h"
 #include "Carriage.h"
 #include "EnemyFactory.h"
 #include "BlockFactory.h"
-#include "main.h"
 #include "Button.h"
 
 #define LINE_NUM 5			//ˆø‚­‚±‚Æ‚Ì‚Å‚«‚éü‚Ì–{”
@@ -143,7 +143,15 @@ void MainGame_Draw()
 	for (int j = 0; j < LINE_NUM; j++)
 		for (int i = 1; i < mouse_status_tmp[j] - 1; i++)
 			if (mouse_status <= POINT_NUM){
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], GetColor(255, 0, 0), 1);
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 12);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 10);
+				SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 8);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 6);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 4);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 2);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 	//counter(line_clear_timer[4], WINDOWSIZE_X - 100, 100, 2);
 	/*counter(mouse_status_tmp[0], WINDOWSIZE_X - 100, 100, 2);

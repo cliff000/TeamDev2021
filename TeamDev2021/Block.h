@@ -8,6 +8,7 @@ class Block :
 protected:
 	int alpha;
 	int count;
+	int color = 0xffffff;
 	Image img;
 
 public:
@@ -20,4 +21,5 @@ public:
 	void update();
 	void draw();
 	void hitAction(GameObject* other);
+	void setColor(int color);
 };

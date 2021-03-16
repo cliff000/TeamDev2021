@@ -3,6 +3,7 @@
 
 class Collider
 {
+protected:
 	double x = 0;
 	double y = 0;
 	double w = 16;
@@ -18,7 +19,8 @@ public:
 
 	void update();
 	void draw();
-	bool collide(Collider* other);
+	bool collide(Collider* other); //Õ“Ë‚µ‚Ä‚¢‚é‚©‚Ì”»’è
+	bool include(Collider* other); //©•ª‚ªother‚ğ•ïŠÜ‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚Ì”»’è
 
 	double getX() { return x + *ownerX; }
 	double getY() { return y + *ownerY; }

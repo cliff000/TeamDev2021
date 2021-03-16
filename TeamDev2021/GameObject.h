@@ -21,6 +21,7 @@ public:
 	~GameObject();
 
 	bool collide(GameObject* other);
+	bool include(GameObject* other);
 	void setMgr(ObjectMgr* mgr); //ObjectMgr‚©‚çŒÄ‚Î‚ê‚é
 	std::string getID() { return id; }
 
