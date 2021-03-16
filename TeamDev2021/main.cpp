@@ -5,10 +5,11 @@
 #include "EnemyFactory.h"
 #include "BlockFactory.h"
 #include "Button.h"
+#include "main.h"
 
 #define LINE_NUM 5			//引くことのできる線の本数
-#define POINT_NUM 50		//引く線の座標を幾つ取るか
-
+#define POINT_NUM 100		//引く線の座標を幾つ取るか
+#define LINE_LENGTH 250		//引くことのできる線の長さ
 int road_grHandle;		//地面のグラフィック
 double road_y;			//地面のy座標
 double speed;			//速さ
@@ -27,12 +28,13 @@ int mouse_status;		//マウスが何フレームの間右クリックされたか
 int mouse_status_tmp[LINE_NUM];	//上記とほぼ同じ、もう一度押されたタイミングで初期化
 int line_count;			//現在何本目の線を書いているか
 int line_clear_timer[LINE_NUM];	//線を時間経過で消すためのタイマー
+double line_length[LINE_NUM];			//線の長さ
 
 void MainGame_Init();
 void MainGame_Update();
 void MainGame_Draw();
 void counter(int num, int x, int y, int block_exRate);
-void line_clear(int mouse_x[], int mouse_y[], int num, int *mouse_status, int *clear_timer, int frame);	//描画した線を消す関数、引数は先頭から消す線のx座標、y座標、座標の個数、書き始めを知るためにフレームを格納した変数、時間計測の変数、消すまでのフレーム数
+void line_clear(int *mouse_x, int *mouse_y, int num, int *mouse_status, int *clear_timer, int frame);	//描画した線を消す関数、引数は先頭から消す線のx座標、y座標、座標の個数、書き始めを知るためにフレームを格納した変数、時間計測の変数、消すまでのフレーム数
 
 ObjectMgr *objectMgr = new ObjectMgr();
 Button* menu = new Button(75, 50, 100, 50, "メニュー");
@@ -65,7 +67,7 @@ void MainGame_Init()
 	run_length = 0;			//走った距離の初期化
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//城のy座標の初期化
-	castle_length = speed * 20 * 60;	//城まで初期スピードで10秒走ると到達
+	castle_length = speed * 20 * 60;	//城まで初期スピードで20秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
 	line_count = 1;
@@ -92,29 +94,36 @@ void MainGame_Update()
 		if (run_length >= castle_length)
 			castle_flag = 1;					//城に到達した場合城到達フラグを1に
 		//マウスの処理
-		if (mouse_status > 0 && mouse_status <= POINT_NUM)	//左クリックが押されている間マウスの座標を保存
-		{
-			GetMousePoint(&mouse_x[line_count-1][mouse_status - 1], &mouse_y[line_count-1][mouse_status - 1]);
-		}
-		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < POINT_NUM) {			//マウスの左クリックが押されたフレーム数を測定
-			mouse_status++;									//フレーム数を格納
-			if (mouse_status == 1) {
+		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < POINT_NUM && line_length[line_count - 1] < LINE_LENGTH) {			//マウスの左クリックが押された時
+			mouse_status++;									//マウスの左クリックが押されたフレーム数を測定
+			if (mouse_status == 1) {						//現在引いている線の本数を保存
 				line_count++;
 			}
-			else if (line_count > LINE_NUM)
+			if (line_count > LINE_NUM)
 				line_count = 1;
-			mouse_status_tmp[line_count-1] = mouse_status;
+
+			if (mouse_status > 0 && mouse_status <= POINT_NUM)	//左クリックが押されている間マウスの座標を保存
+			{
+				GetMousePoint(&mouse_x[line_count - 1][mouse_status - 1], &mouse_y[line_count - 1][mouse_status - 1]);
+			}
+			mouse_status_tmp[line_count - 1] = mouse_status;
+			line_length[line_count - 1] = 0;
+			for (int i = 0; i < mouse_status_tmp[line_count - 1] - 1; i++)		//線の長さを測る
+			{
+				line_length[line_count - 1] += sqrt(pow(mouse_x[line_count - 1][i] - mouse_x[line_count - 1][i + 1], 2) + pow(mouse_y[line_count - 1][i] - mouse_y[line_count - 1][i + 1], 2));
+			}
+
 		}
 		else if (!(GetMouseInput() & MOUSE_INPUT_LEFT)) {
 			if (line_count > 0 && mouse_status > 0) {
 				objectMgr->add(new BlockFactory(mouse_x[line_count - 1], mouse_y[line_count - 1], mouse_status));
 			}
+			line_length[line_count - 1] = 0;
 			mouse_status = 0;
+			for (int i = 0; i < LINE_NUM; i++)
+				line_clear(mouse_x[i], mouse_y[i], POINT_NUM, &mouse_status_tmp[i], &line_clear_timer[i], 10);		//引いた線を一定時間で消す
 		}
-			
-		
-		for (int i = 0; i < LINE_NUM; i++)
-			line_clear(mouse_x[i], mouse_y[i], POINT_NUM, &mouse_status_tmp[i], &line_clear_timer[i], 100);
+
 	}
 
 	else if (castle_flag == 1) {			//城に到達した場合
@@ -153,7 +162,6 @@ void MainGame_Draw()
 				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 2);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
-	//counter(line_clear_timer[4], WINDOWSIZE_X - 100, 100, 2);
 	/*counter(mouse_status_tmp[0], WINDOWSIZE_X - 100, 100, 2);
 	counter(mouse_status_tmp[1], WINDOWSIZE_X - 100, 150, 2);
 	counter(mouse_status_tmp[2], WINDOWSIZE_X - 100, 200, 2);
@@ -162,7 +170,21 @@ void MainGame_Draw()
 	counter(mouse_x[3][1], WINDOWSIZE_X - 100, 400, 2);
 	counter(line_count, WINDOWSIZE_X - 100, 500, 2);*/
 
-	//タイマーの描画
+	//描くことができる線の残りの長さ(仮)
+	DrawBox(WINDOWSIZE_X - 200, 500, WINDOWSIZE_X - 50, 530, GetColor(255, 255, 255), TRUE);
+	DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(255, 50, 50), TRUE);
+	for (int i = 0; i < LINE_NUM; i++)
+	{
+		DrawBox(WINDOWSIZE_X - 55 - 110 * (line_length[i] / LINE_LENGTH), 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
+		if(mouse_status_tmp[i] >=  POINT_NUM -5)
+			DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
+	}
+	
+	//城までの距離(仮)
+	DrawBox((WINDOWSIZE_X / 2) - 200, 525, (WINDOWSIZE_X / 2) + 200, 535, GetColor(255, 255, 255), TRUE);
+	DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
+
+	//残り時間の描画
 	counter((time_limit - timer) / 60, WINDOWSIZE_X - 100, 50, 2);
 	//城の描画
 	if (castle_flag == 1)
