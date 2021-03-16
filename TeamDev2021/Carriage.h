@@ -19,6 +19,7 @@ public:
 
 	void update();
 	void draw();
+	void setNextPos(int x, int y);
 	void hitAction(GameObject* other);
 };
 

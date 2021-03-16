@@ -55,5 +55,10 @@ void Carriage::draw() {
 	//col->draw();
 }
 
+void Carriage::setNextPos(int x, int y) {
+	nextX = x;
+	nextY = y;
+}
+
 void Carriage::hitAction(GameObject* other) {
 }
