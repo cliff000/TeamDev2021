@@ -8,7 +8,7 @@ class Block :
 protected:
 	int alpha;
 	int count;
-	int color = 0xffffff;
+	int color = 0x1CFFFF;
 	Image img;
 
 public:

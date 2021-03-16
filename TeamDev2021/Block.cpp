@@ -1,6 +1,8 @@
 #include "Block.h"
 #include "DxLib.h"
 
+#define ALPHA_DEF 160
+
 
 Block::Block()
 {
@@ -38,7 +40,7 @@ void Block::init() {
 	h = 50;
 	x = 0;
 	y = 0;
-	alpha = 255;
+	alpha = ALPHA_DEF;
 	col->setPos(0, 0);
 	col->setSize(50, 50);
 	//img = Image("Resource/Image/block.jpg");
@@ -46,15 +48,15 @@ void Block::init() {
 
 void Block::update() {
 	if (count++ >= 90){
-		if (alpha == 255) {
-			alpha = 128;
+		if (alpha == ALPHA_DEF) {
+			alpha = ALPHA_DEF / 2;
 			count = 45;
 		}else{
 			mgr->del(this);
 		}
 	}
 
-	if (alpha != 255) {
+	if (alpha != ALPHA_DEF) {
 		if (count % 4 < 2) {
 			alpha += 5;
 		}
@@ -68,8 +70,10 @@ void Block::update() {
 void Block::draw() {
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 	DrawBox(x - w/2, y - h/2, x + w/2, y + h/2, color, true);
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA,  1.0 * 255 / ALPHA_DEF * alpha);
+	DrawBoxAA(x - w / 2, y - h / 2, x + w / 2, y + h / 2, 0xbce2e8, false, 3);
 	//img.draw(x, y, 0.148, 0, true, true);
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	//col->draw();
 }
 
