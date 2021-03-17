@@ -54,7 +54,7 @@ void Spotter::draw() {
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 		deleteCount += 10;
 	}
-	col->draw();
+	//col->draw();
 }
 
 void Spotter::hitAction(GameObject* other) {

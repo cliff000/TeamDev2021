@@ -52,7 +52,7 @@ void Magic::update() {
 }
 
 void Magic::draw() {
-	col->draw();
+	//col->draw();
 }
 
 void Magic::hitAction(GameObject* other) {
