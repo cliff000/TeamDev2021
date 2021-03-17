@@ -7,11 +7,12 @@
 #include "Button.h"
 #include "main.h"
 #include <iostream>
+#include "mouse.h"
 
 enum GameMode { Title, MainGame };
 
 #define LINE_NUM 5			//引くことのできる線の本数
-#define POINT_NUM 100		//引く線の座標を幾つ取るか
+#define POINT_NUM 600		//引く線の座標を幾つ取るか
 #define LINE_LENGTH 500		//引くことのできる線の長さ
 #define FIRST_SPEED 5       //始めのスピード
 #define TIME_LIMIT 20*60		//制限時間
@@ -63,7 +64,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	MainGame_Init();
 
 	// while( 裏画面を表画面に反映, メッセージ処理, 画面クリア )
-	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
+	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0 && gpUpdateMouse() == 0) {
 		if (gameMode == Title) {
 			Title_Update();
 			Title_Draw();
@@ -86,7 +87,7 @@ void Title_Init() {
 
 void Title_Update() {
 	//クリックされたらメインゲームに移行する
-	if (GetMouseInput() & MOUSE_INPUT_LEFT) 
+	if (Mouse[MOUSE_LEFT] == 1)
 		changeScene_Title_to_MainGame = true;
 
 	if (changeScene_Title_to_MainGame) {
@@ -115,7 +116,7 @@ void MainGame_Init()
 	run_length = 0;			//走った距離の初期化
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//城のy座標の初期化
-	castle_length = speed * 5 * 60;	//城まで初期スピードで20秒走ると到達
+	castle_length = speed * 15 * 60;	//城まで初期スピードで20秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
 	line_count = 1;
@@ -200,7 +201,7 @@ void MainGame_Update()
 					blend_alpha = 255;
 			}
 			if (blend_alpha >= 255) {
-				if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+				if (Mouse[MOUSE_LEFT] == 1) {
 					Title_Init();
 					gameMode = Title;
 					MainGame_Init();
@@ -217,7 +218,7 @@ void MainGame_Update()
 			blend_alpha = 255;
 	}
 	if (blend_alpha >= 255) {
-		if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+		if (Mouse[MOUSE_LEFT] == 1) {
 			Title_Init();
 			gameMode = Title;
 			MainGame_Init();

@@ -7,7 +7,7 @@ class EnemyFactory :
 	int count_arrow = 0;
 	int countMax_arrow = 120;
 	int count_spotter = 0;
-	int countMax_spotter = 180;
+	int countMax_spotter = 240;
 
 public:
 	EnemyFactory();

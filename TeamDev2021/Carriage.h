@@ -11,6 +11,8 @@ protected:
 	double nextY = 0;
 	double speedX = 0;
 	double speedY = 0;
+	int hitCount = 0;
+	int alpha = 255;
 	Image img;
 
 public:

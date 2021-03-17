@@ -23,21 +23,22 @@ Carriage::~Carriage()
 
 void Carriage::update() {
 	
-	if (speedX != 0 || speedY != 0) {
+	if (speedX != 0 || speedY != 0) {  //speed‚ª‚ ‚ê‚ÎˆÚ“®
 		x += speedX;
 		y += speedY;
 	}
-	else if(count++ >= 180){
+	else if(count++ >= 180){  //ƒ‰ƒ“ƒ_ƒ€‚ÉˆÚ“®æ‚ğŒˆ‚ß‚é
 		int rand = GetRand(100);
 		if (rand < 20) nextX = 480, nextY = 360;
 		else if (rand < 40) nextX = 480, nextY = 260;
 		else if (rand < 45) nextX = 380, nextY = 360;
 		else if (rand < 50) nextX = 380, nextY = 260;
-		else if (rand < 65) nextX = 580, nextY = 360;
-		else if (rand < 70) nextX = 580, nextY = 260;
+		else if (rand < 55) nextX = 580, nextY = 360;
+		else if (rand < 60) nextX = 580, nextY = 260;
 		count = 0;
 	}
 
+	//nextX,nextY‚É‚ä‚Á‚­‚èˆÚ“®‚·‚é‚æ‚¤‚É‚·‚éˆ—
 	if (abs(x - nextX) < 1 && abs(y - nextY) < 1) {
 		speedX = 0;
 		speedY = 0;
@@ -48,10 +49,24 @@ void Carriage::update() {
 		speedX = (nextX - x) / 50.0;
 		speedY = (nextY - y) / 50.0;
 	}
+
+	//–î‚É“–‚½‚é‚Æ“_–Å
+	if (hitCount != 0) {
+		if (hitCount % 16 < 8) {
+			alpha -= 10;
+		}
+		else {
+			alpha += 10;
+		}
+
+		if (hitCount++ >= 80) hitCount = 0, alpha = 255;
+	}
 }
 
 void Carriage::draw() {
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 	img.draw(x, y, 0.5, 0, true, false);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	//col->draw();
 }
 
@@ -61,4 +76,12 @@ void Carriage::setNextPos(int x, int y) {
 }
 
 void Carriage::hitAction(GameObject* other) {
+	if (other->getID() == "Arrow" && hitCount == 0) {
+		if (speed > 1) {
+			speed -= 0.5;
+		}
+		hitCount = 1;
+		alpha = 158;
+	}
+		
 }
