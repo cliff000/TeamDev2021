@@ -207,34 +207,39 @@ void MainGame_Update()
 				blend_alpha += 5;
 				if (blend_alpha > 255)
 					blend_alpha = 255;
+		}
+		if (blend_alpha >= 255) {
+			if (mouse_status > 0)
+				mouse_status--;
+			if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+				mouse_status = 3;
 			}
-			if (blend_alpha >= 255) {
-				if (GetMouseInput() & MOUSE_INPUT_LEFT) {
-					Title_Init();
-					gameMode = Title;
-					MainGame_Init();
-				}			if (blend_alpha < 255) {
-
+			if (mouse_status == 1) {
+				Title_Init();
+				gameMode = Title;
+				MainGame_Init();
 			}
 		}
-
 	}
 	else {					//§ŒÀŽžŠÔ‚ð’´‚¦‚½ê‡
+		if(mouse_status > 0)
+			mouse_status--;
 		castle_flag = 0;
 		blend_alpha += 5;
 		if (blend_alpha > 255)
 			blend_alpha = 255;
-	}
-	if (blend_alpha >= 255) {
-		if (GetMouseInput() & MOUSE_INPUT_LEFT) {
-			Title_Init();
-			gameMode = Title;
-			MainGame_Init();
-		}			if (blend_alpha < 255) {
-
+		if (blend_alpha >= 255) {
+			if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+				mouse_status = 3;
+			}
+			if (mouse_status == 1) {
+				Title_Init();
+				gameMode = Title;
+				MainGame_Init();
+			}
 		}
-
 	}
+
 
 
 	
