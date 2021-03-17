@@ -2,20 +2,20 @@
 #include "GameObject.h"
 #include "Image.h"
 
-class Spotter :
+class Magic :
 	public GameObject
 {
 protected:
-	Image img;
-	Image effect;
-	int side; //0ÇæÇ∆ç∂ÅA1ÇæÇ∆âE
 	int count = 0;
-	int deleteCount = 0;
+	Image img;
 
 public:
-	Spotter();
-	~Spotter();
+	Magic();
+	Magic(int x, int y);
+	Magic(int x, int y, int w, int h);
+	~Magic();
 
+	void init();
 	void update();
 	void draw();
 	void hitAction(GameObject* other);

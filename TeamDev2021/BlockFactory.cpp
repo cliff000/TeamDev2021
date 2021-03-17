@@ -1,5 +1,6 @@
 #include "BlockFactory.h"
 #include "Block.h"
+#include "Magic.h"
 #include <math.h>
 #include "DxLib.h"
 
@@ -36,7 +37,7 @@ void BlockFactory::update() {
 	}
 
 	if (circleflag) {
-		//円形なら攻撃位置に赤ブロック
+		//円形なら魔法攻撃
 		int min_x = line_x[0];
 		int min_y = line_y[0];
 		int max_x = line_x[0];
@@ -47,9 +48,7 @@ void BlockFactory::update() {
 			if (line_x[i] > max_x) max_x = line_x[i];
 			if (line_y[i] > max_y) max_y = line_y[i];
 		}
-		Block* b = new Block((min_x + max_x) / 2, (min_y + max_y) / 2, max_x - min_x, max_y - min_y);
-		b->setColor(0xff0000);
-		mgr->add(b);
+		mgr->add(new Magic((min_x + max_x) / 2, (min_y + max_y) / 2, max_x - min_x, max_y - min_y));
 	}
 	else {
 		//線の位置にブロック追加
