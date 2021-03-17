@@ -22,6 +22,8 @@ double speed;			//速さ
 int carriage_grHandle;	//馬車のグラフィック
 int timer;				//時間制限用のタイマー
 int number_grHandle[10];		//タイマーのグラフィック(仮)
+int clock_grHandle;		//タイマーのグラフィック
+int clock_hand_grHandle;//タイマーの針のグラフィック
 int run_length;			//走った距離の測定
 int castle_grHandle;	//城のグラフィック
 double castle_y;		//城のy座標
@@ -40,6 +42,8 @@ int line_count;			//現在何本目の線を書いているか
 int line_clear_timer[LINE_NUM];	//線を時間経過で消すためのタイマー
 double line_length[LINE_NUM];			//線の長さ
 int blend_alpha;			//画像などを透過でゆっくり浮き上がらせるための変数
+int FontHandle;			//クリア時、ゲームオーバー時のフォントデータの保存
+int scroll_bar_grHandle;	//馬車の現在地を示すスクロールバーのグラフィック
 
 void Title_Init();
 void Title_Update();
@@ -113,14 +117,19 @@ void MainGame_Init()
 	carriage_grHandle = LoadGraph("Resource/Image/carriage.png");
 	timer = 0;				//タイマーの初期化
 	LoadDivGraph("Resource/Image/number.png", 10, 10, 1, 16, 16, number_grHandle);
+	clock_grHandle = LoadGraph("Resource/Image/clock.png");
+	clock_hand_grHandle = LoadGraph("Resource/Image/clock_hand.png");
+
 	run_length = 0;			//走った距離の初期化
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//城のy座標の初期化
 	castle_length = speed * 15 * 60;	//城まで初期スピードで20秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
-	line_count = 1;
+	line_count = 1;	
 	blend_alpha = 0;
+	FontHandle = CreateFontToHandle("Georgia", 32, -1, DX_FONTTYPE_ANTIALIASING);
+	scroll_bar_grHandle = LoadGraph("Resource/Image/scroll_bar.png");
 
 	for (int i = 0; i < LINE_NUM; i++) {
 		mouse_status_tmp[i] = 0;
@@ -199,34 +208,39 @@ void MainGame_Update()
 				blend_alpha += 5;
 				if (blend_alpha > 255)
 					blend_alpha = 255;
+		}
+		if (blend_alpha >= 255) {
+			if (mouse_status > 0)
+				mouse_status--;
+			if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+				mouse_status = 3;
 			}
-			if (blend_alpha >= 255) {
-				if (Mouse[MOUSE_LEFT] == 1) {
-					Title_Init();
-					gameMode = Title;
-					MainGame_Init();
-				}			if (blend_alpha < 255) {
-
+			if (Mouse[MOUSE_LEFT] == 1) {
+				Title_Init();
+				gameMode = Title;
+				MainGame_Init();
 			}
 		}
-
 	}
 	else {					//制限時間を超えた場合
+		if(mouse_status > 0)
+			mouse_status--;
 		castle_flag = 0;
 		blend_alpha += 5;
 		if (blend_alpha > 255)
 			blend_alpha = 255;
-	}
-	if (blend_alpha >= 255) {
-		if (Mouse[MOUSE_LEFT] == 1) {
-			Title_Init();
-			gameMode = Title;
-			MainGame_Init();
-		}			if (blend_alpha < 255) {
-
+		if (blend_alpha >= 255) {
+			if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+				mouse_status = 3;
+			}
+			if (Mouse[MOUSE_LEFT] == 1) {
+				Title_Init();
+				gameMode = Title;
+				MainGame_Init();
+			}
 		}
-
 	}
+
 
 
 	
@@ -280,12 +294,15 @@ void MainGame_Draw()
 		DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
 
 	if (castle_flag == 0) {
-		//城までの距離(仮)
+		//城までの距離
 		DrawBox((WINDOWSIZE_X / 2) - 200, 525, (WINDOWSIZE_X / 2) + 200, 535, GetColor(255, 255, 255), TRUE);
-		DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
+		//DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
+		DrawRotaGraph((WINDOWSIZE_X / 2) - 200 + 400 * run_length / castle_length, 510, 0.3, 0, scroll_bar_grHandle, 1);
 
 		//残り時間の描画
-		counter((TIME_LIMIT - timer) / 60, WINDOWSIZE_X - 100, 50, 2);
+		DrawRotaGraph(WINDOWSIZE_X - 50, 50, 0.5, 0, clock_grHandle, 1);
+		DrawRotaGraph(WINDOWSIZE_X - 50, 50, 0.5, 2 * PI * timer / (TIME_LIMIT), clock_hand_grHandle, 1);
+		//counter((TIME_LIMIT - timer) / 60, WINDOWSIZE_X - 100, 200, 2);
 	}
 	
 
@@ -296,10 +313,12 @@ void MainGame_Draw()
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y - WINDOWSIZE_Y / 2, 1, 0, castle_grHandle, 1); //城の描画
 		if (castle_y >= WINDOWSIZE_Y) {
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, blend_alpha);
-			DrawString(WINDOWSIZE_X / 2 - 43, WINDOWSIZE_Y / 2, "GAME CLEAR", 0xffffff);
+			DrawStringToHandle(WINDOWSIZE_X / 2 - 105, WINDOWSIZE_Y / 2 - 16, "GAME CLEAR", 0xffffff, FontHandle);
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-			if (blend_alpha >= 255)
+			if (blend_alpha >= 255) {
 				DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
+				DrawFormatString(WINDOWSIZE_X - 200, 100, 0xffffff, "Time : %.2f", (double)timer / 60);
+			}
 		}
 
 	}
@@ -310,7 +329,7 @@ void MainGame_Draw()
 		DrawBox(0, 0, WINDOWSIZE_X, WINDOWSIZE_Y, 0x000000, TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 		if (blend_alpha >= 255) {
-			DrawString(WINDOWSIZE_X / 2 - 38, WINDOWSIZE_Y / 2, "GAME OVER", 0xffffff);
+			DrawStringToHandle(WINDOWSIZE_X / 2 - 100, WINDOWSIZE_Y / 2 - 16, "GAME OVER", 0xffffff, FontHandle);
 			DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
 		}
 	}
