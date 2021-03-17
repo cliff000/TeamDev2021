@@ -14,13 +14,13 @@ enum GameMode { Title, MainGame };
 #define POINT_NUM 100		//引く線の座標を幾つ取るか
 #define LINE_LENGTH 500		//引くことのできる線の長さ
 #define FIRST_SPEED 5       //始めのスピード
+#define TIME_LIMIT 20*60		//制限時間
 int road_grHandle;		//地面のグラフィック
 double road_y;			//地面のy座標
 double speed;			//速さ
 int carriage_grHandle;	//馬車のグラフィック
 int timer;				//時間制限用のタイマー
 int number_grHandle[10];		//タイマーのグラフィック(仮)
-int time_limit;			//制限時間
 int run_length;			//走った距離の測定
 int castle_grHandle;	//城のグラフィック
 double castle_y;		//城のy座標
@@ -38,6 +38,7 @@ int mouse_status_tmp[LINE_NUM];	//上記とほぼ同じ、もう一度押されたタイミングで初
 int line_count;			//現在何本目の線を書いているか
 int line_clear_timer[LINE_NUM];	//線を時間経過で消すためのタイマー
 double line_length[LINE_NUM];			//線の長さ
+int blend_alpha;			//画像などを透過でゆっくり浮き上がらせるための変数
 
 void Title_Init();
 void Title_Update();
@@ -111,14 +112,15 @@ void MainGame_Init()
 	carriage_grHandle = LoadGraph("Resource/Image/carriage.png");
 	timer = 0;				//タイマーの初期化
 	LoadDivGraph("Resource/Image/number.png", 10, 10, 1, 16, 16, number_grHandle);
-	time_limit = 20*60;		//制限時間の設定(現在は20秒)
 	run_length = 0;			//走った距離の初期化
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//城のy座標の初期化
-	castle_length = speed * 20 * 60;	//城まで初期スピードで20秒走ると到達
+	castle_length = speed * 5 * 60;	//城まで初期スピードで20秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
 	line_count = 1;
+	blend_alpha = 0;
+
 	for (int i = 0; i < LINE_NUM; i++) {
 		mouse_status_tmp[i] = 0;
 		line_clear_timer[i] = 0;
@@ -142,7 +144,7 @@ void MainGame_Init()
 
 void MainGame_Update()
 {
-	if (timer <= time_limit && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
+	if (timer <= TIME_LIMIT && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
 		road_y += speed;		//1フレームごとに地面をspeed分移動する
 		if (road_y >= WINDOWSIZE_Y)		//地面の座標がWINDOWSIZE_Yを超えたら0に戻す
 			road_y = 0;
@@ -192,9 +194,37 @@ void MainGame_Update()
 		if (castle_y < WINDOWSIZE_Y) {
 			castle_y += speed;
 		}
+		if (castle_y >= WINDOWSIZE_Y) {
+				blend_alpha += 5;
+				if (blend_alpha > 255)
+					blend_alpha = 255;
+			}
+			if (blend_alpha >= 255) {
+				if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+					Title_Init();
+					gameMode = Title;
+					MainGame_Init();
+				}			if (blend_alpha < 255) {
+
+			}
+		}
+
 	}
 	else {					//制限時間を超えた場合
 		castle_flag = 0;
+		blend_alpha += 5;
+		if (blend_alpha > 255)
+			blend_alpha = 255;
+	}
+	if (blend_alpha >= 255) {
+		if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+			Title_Init();
+			gameMode = Title;
+			MainGame_Init();
+		}			if (blend_alpha < 255) {
+
+		}
+
 	}
 
 
@@ -244,9 +274,9 @@ void MainGame_Draw()
 	for (int i = 0; i < LINE_NUM; i++)
 	{
 		DrawBox(WINDOWSIZE_X - 55 - 110 * (line_length[i] / LINE_LENGTH), 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
-		if(mouse_status_tmp[i] >=  POINT_NUM -5)
-			DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
 	}
+	if (mouse_status >= POINT_NUM || line_length[line_count - 1] >= LINE_LENGTH)
+		DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
 
 	if (castle_flag == 0) {
 		//城までの距離(仮)
@@ -254,7 +284,7 @@ void MainGame_Draw()
 		DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
 
 		//残り時間の描画
-		counter((time_limit - timer) / 60, WINDOWSIZE_X - 100, 50, 2);
+		counter((TIME_LIMIT - timer) / 60, WINDOWSIZE_X - 100, 50, 2);
 	}
 	
 
@@ -263,7 +293,27 @@ void MainGame_Draw()
 		SetDrawScreen(DX_SCREEN_BACK);
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y + WINDOWSIZE_Y / 2, 1, 0, clear_screen, 1);
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y - WINDOWSIZE_Y / 2, 1, 0, castle_grHandle, 1); //城の描画
+		if (castle_y >= WINDOWSIZE_Y) {
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, blend_alpha);
+			DrawString(WINDOWSIZE_X / 2 - 43, WINDOWSIZE_Y / 2, "GAME CLEAR", 0xffffff);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+			if (blend_alpha >= 255)
+				DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
+		}
+
 	}
+
+	//時間制限を超えた場合
+	if (timer > TIME_LIMIT) {
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, blend_alpha);
+		DrawBox(0, 0, WINDOWSIZE_X, WINDOWSIZE_Y, 0x000000, TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+		if (blend_alpha >= 255) {
+			DrawString(WINDOWSIZE_X / 2 - 38, WINDOWSIZE_Y / 2, "GAME OVER", 0xffffff);
+			DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
+		}
+	}
+
 }
 
 void counter(int num, int x, int y, int block_exRate)		//数字を表示する関数、引数は先頭から表示する数字、x座標、y座標、表示倍率
