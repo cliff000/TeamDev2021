@@ -16,6 +16,9 @@ void Image::draw(int x, int y, double ExtRate, double Angle, int TransFlag, int 
 	DrawRotaGraph(x, y, ExtRate, Angle, img, TransFlag, TurnFlag);
 }
 
+void Image::draw(int x, int y, int w, int h, int TransFlag) {
+}
+
 
 void Image::read(const char* imgPass) {
 	if (imgMap.find(imgPass) == imgMap.end())

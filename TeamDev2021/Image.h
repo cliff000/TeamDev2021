@@ -14,6 +14,7 @@ public:
 	~Image();
 
 	virtual void draw(int x, int y, double ExtRate, double Angle, int TransFlag, int TurnFlag);
+	virtual void draw(int x, int y, int w, int h, int TransFlag);
 
 	static void read(const char* imgPass);
 	static void clear();
