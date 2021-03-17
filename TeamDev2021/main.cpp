@@ -42,6 +42,7 @@ int line_clear_timer[LINE_NUM];	//線を時間経過で消すためのタイマー
 double line_length[LINE_NUM];			//線の長さ
 int blend_alpha;			//画像などを透過でゆっくり浮き上がらせるための変数
 int FontHandle;			//クリア時、ゲームオーバー時のフォントデータの保存
+int scroll_bar_grHandle;	//馬車の現在地を示すスクロールバーのグラフィック
 
 void Title_Init();
 void Title_Update();
@@ -124,9 +125,10 @@ void MainGame_Init()
 	castle_length = speed * 20 * 60;	//城まで初期スピードで20秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
-	line_count = 1;
+	line_count = 1;	
 	blend_alpha = 0;
 	FontHandle = CreateFontToHandle("Georgia", 32, -1, DX_FONTTYPE_ANTIALIASING);
+	scroll_bar_grHandle = LoadGraph("Resource/Image/scroll_bar.png");
 
 	for (int i = 0; i < LINE_NUM; i++) {
 		mouse_status_tmp[i] = 0;
@@ -286,9 +288,10 @@ void MainGame_Draw()
 		DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
 
 	if (castle_flag == 0) {
-		//城までの距離(仮)
+		//城までの距離
 		DrawBox((WINDOWSIZE_X / 2) - 200, 525, (WINDOWSIZE_X / 2) + 200, 535, GetColor(255, 255, 255), TRUE);
-		DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
+		//DrawBox((WINDOWSIZE_X / 2) - 195 + 400 * run_length / castle_length, 515, (WINDOWSIZE_X / 2) - 205 + 400 * run_length / castle_length, 525, GetColor(100, 255, 100), TRUE);
+		DrawRotaGraph((WINDOWSIZE_X / 2) - 200 + 400 * run_length / castle_length, 510, 0.3, 0, scroll_bar_grHandle, 1);
 
 		//残り時間の描画
 		DrawRotaGraph(WINDOWSIZE_X - 50, 50, 0.5, 0, clock_grHandle, 1);
