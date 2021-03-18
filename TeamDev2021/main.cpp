@@ -296,6 +296,7 @@ void MainGame_Update()
 				Title_Init();
 				gameMode = Title;
 				MainGame_Init();
+				se_gameover.stop();
 			}
 		}
 
