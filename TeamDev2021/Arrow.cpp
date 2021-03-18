@@ -25,7 +25,7 @@ void Arrow::init() {
 	w = 100;
 	h = 100;
 	x = side * (WINDOWSIZE_X + w) - w / 2;
-	y = GetRand(WINDOWSIZE_Y - 100 - h) + 100 + h / 2;
+	y = GetRand(WINDOWSIZE_Y - 100 - h) + 70 + h / 2;
 	col->setPos(0, 0);
 	col->setSize(80, 5);
 	img = Image("Resource/Image/arrow.png");

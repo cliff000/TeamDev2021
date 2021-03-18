@@ -269,7 +269,7 @@ void MainGame_Update()
 		objectMgr->update(); //オブジェクトのアップデート
 
 	//メニューボタンが押された場合の処理
-	if (menu->isClicked()) {
+	if (menu->isReleased()) {
 		gameMode = Pause;
 		Pause_Init();
 	}
@@ -278,6 +278,9 @@ void MainGame_Update()
 
 void MainGame_Draw()
 {
+	//タイトルに戻るとき描画を行わない
+	if (gameMode == Title) return;
+
 	//城に到達した場合
 	if (castle_flag == 1)
 		SetDrawScreen(clear_screen); //描画先を変更
@@ -413,10 +416,10 @@ void Pause_Update() {
 	}
 
 	//ボタンが押された場合
-	if (resume->isClicked()) {
+	if (resume->isReleased()) {
 		changeScene_Pause_to_MainGame = true;
 	}
-	if (restart->isClicked()) {
+	if (restart->isReleased()) {
 		MainGame_Init();
 		gameMode = MainGame;
 	}

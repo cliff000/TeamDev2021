@@ -12,7 +12,7 @@ Spotter::Spotter()
 	y = -500;
 	side = GetRand(1);
 	x = side * (WINDOWSIZE_X + w) - w / 2;
-	y = GetRand(WINDOWSIZE_Y - 100 - h) + 100 + h / 2;
+	y = GetRand(WINDOWSIZE_Y - 100 - h) + 70 + h / 2;
 	col->setSize(40, 40);
 
 	if (side == 0) {
