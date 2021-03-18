@@ -184,6 +184,14 @@ void MainGame_Update()
 {
 	bgm_maingame.play(DX_PLAYTYPE_LOOP, true); //bgm再生
 
+	//マウスが外に出ないようにする
+	int mx, my;
+	GetMousePoint(&mx, &my);
+	if (mx < 0) SetMousePoint(0, my);
+	if (mx > WINDOWSIZE_X) SetMousePoint(WINDOWSIZE_X, my);
+	if (my < 0) SetMousePoint(mx, 0);
+	if (my > WINDOWSIZE_Y) SetMousePoint(mx, WINDOWSIZE_Y);
+
 	if (timer <= TIME_LIMIT && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
 		road_y += speed;		//1フレームごとに地面をspeed分移動する
 
