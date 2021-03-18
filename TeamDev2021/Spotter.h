@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "Image.h"
+#include "Sound.h"
 
 class Spotter :
 	public GameObject
@@ -8,6 +9,7 @@ class Spotter :
 protected:
 	Image img;
 	Image effect;
+	Sound se;
 	int side; //0‚¾‚Æ¶A1‚¾‚Æ‰E
 	int count = 0;
 	int deleteCount = 0;

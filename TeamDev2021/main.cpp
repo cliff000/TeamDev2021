@@ -8,6 +8,7 @@
 #include "main.h"
 #include <iostream>
 #include "mouse.h"
+#include "Sound.h"
 
 enum GameMode { Title, MainGame, Pause };
 
@@ -65,6 +66,7 @@ ObjectMgr* objectMgr = nullptr;
 Button *menu, *resume, *restart;
 Carriage* carriage;
 ObjectMgr* pauseObjectMgr = nullptr;
+Sound bgm_maingame, bgm_title, se_clear, se_gameover, se_pause;
 
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -99,9 +101,14 @@ void Title_Init() {
 	title_y = WINDOWSIZE_Y / 2;
 	road_grHandle = LoadGraph("Resource/Image/floor.png");
 	title_grHandle = LoadGraph("Resource/Image/title.png");
+	bgm_title = Sound("Resource/Sound/bgm_title.ogg");
+	bgm_title.stop();
 }
 
 void Title_Update() {
+	bgm_maingame.stop();
+	bgm_title.play(DX_PLAYTYPE_LOOP, true); //bgm再生
+
 	//クリックされたらメインゲームに移行する
 	if (Mouse[MOUSE_LEFT] == 1)
 		changeScene_Title_to_MainGame = true;
@@ -109,8 +116,10 @@ void Title_Update() {
 	if (changeScene_Title_to_MainGame) {
 		if (title_y < WINDOWSIZE_Y / 2 * 3)
 			title_y += FIRST_SPEED;
-		else
+		else {
 			gameMode = MainGame;
+			bgm_title.stop();
+		}
 	}
 }
 
@@ -163,11 +172,17 @@ void MainGame_Init()
 	objectMgr->add(new EnemyFactory());
 	objectMgr->add(menu);
 
+	//サウンドの読み込み
+	bgm_maingame = Sound("Resource/Sound/bgm.ogg");
+	se_clear = Sound("Resource/Sound/se_clear.ogg");
+	se_gameover = Sound("Resource/Sound/se_gameover.ogg");
+	se_pause = Sound("Resource/Sound/se_title.ogg");
+	bgm_maingame.changeVolume(190);
 }
 
 void MainGame_Update()
 {
-	if (gameMode != MainGame) return; //gemeModeが違うと描画しない
+	bgm_maingame.play(DX_PLAYTYPE_LOOP, true); //bgm再生
 
 	if (timer <= TIME_LIMIT && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
 		road_y += speed;		//1フレームごとに地面をspeed分移動する
@@ -219,18 +234,25 @@ void MainGame_Update()
 				line_clear(mouse_x[i], mouse_y[i], POINT_NUM, &mouse_status_tmp[i], &line_clear_timer[i], 10);		//引いた線を一定時間で消す
 		}
 
+
+		objectMgr->update(); //オブジェクトのアップデート
 	}
 
 	else if (castle_flag == 1) {			//城に到達した場合
 		speed = std::cos(castle_y / WINDOWSIZE_Y * PI / 2) * (FIRST_SPEED - 1) + 1;  //ゆるく減速
+		bgm_maingame.stop();
 
 		if (castle_y < WINDOWSIZE_Y) {
 			castle_y += speed;
+			
 		}
 		if (castle_y >= WINDOWSIZE_Y) {
+			if (blend_alpha < 255) {
 				blend_alpha += 5;
-				if (blend_alpha > 255)
-					blend_alpha = 255;
+				se_clear.play(DX_PLAYTYPE_BACK, true);  //クリアSEの再生
+			}
+			if (blend_alpha > 255)
+				blend_alpha = 255;
 		}
 		if (blend_alpha >= 255) {
 			if (mouse_status > 0)
@@ -242,14 +264,20 @@ void MainGame_Update()
 				Title_Init();
 				gameMode = Title;
 				MainGame_Init();
+				se_clear.stop();
 			}
 		}
+
 	}
 	else {					//制限時間を超えた場合
 		if(mouse_status > 0)
 			mouse_status--;
 		castle_flag = 0;
+		bgm_maingame.stop();
 		blend_alpha += 5;
+		if (blend_alpha < 255 && blend_alpha >= 200) {
+			se_gameover.play(DX_PLAYTYPE_BACK, true);  //ゲームオーバーSEの再生
+		}
 		if (blend_alpha > 255)
 			blend_alpha = 255;
 		if (blend_alpha >= 255) {
@@ -262,16 +290,17 @@ void MainGame_Update()
 				MainGame_Init();
 			}
 		}
+
+		bgm_maingame.stop();
 	}
 
-	
-	if (castle_flag == 0)
-		objectMgr->update(); //オブジェクトのアップデート
 
 	//メニューボタンが押された場合の処理
 	if (menu->isReleased()) {
 		gameMode = Pause;
 		Pause_Init();
+		bgm_maingame.stop();
+		se_pause.play(DX_PLAYTYPE_BACK, true);
 	}
 
 }
@@ -430,6 +459,7 @@ void Pause_Update() {
 	}
 	if (brightPause >= 255) {
 		gameMode = MainGame;
+		bgm_maingame.play(DX_PLAYTYPE_LOOP, false); //bgm再生
 	}
 }
 

@@ -19,12 +19,15 @@ Spotter::Spotter()
 		col->setPos(5, -5);
 		img = Image("Resource/Image/spotter_L.png");
 		effect = Image("Resource/Image/effect_freeze.png");
+		se = Sound("Resource/Sound/se_fire.ogg");
 	}
 	else {
 		col->setPos(-5, -5);
 		img = Image("Resource/Image/spotter_R.png");
 		effect = Image("Resource/Image/effect_fire.png");
+		se = Sound("Resource/Sound/se_fire.ogg");
 	}
+	se.changeVolume(180);
 }
 
 
@@ -58,6 +61,8 @@ void Spotter::draw() {
 }
 
 void Spotter::hitAction(GameObject* other) {
-	if (other->getID() == "Magic" && other->include(this))
+	if (other->getID() == "Magic" && other->include(this)) {
 		deleteCount++;
+		se.play(DX_PLAYTYPE_BACK, true);
+	}
 }

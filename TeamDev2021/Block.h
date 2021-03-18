@@ -1,6 +1,6 @@
 #pragma once
 #include "GameObject.h"
-#include "Image.h"
+#include "Sound.h"
 
 class Block :
 	public GameObject
@@ -9,7 +9,7 @@ protected:
 	int alpha;
 	int count;
 	int color = 0x1CFFFF;
-	Image img;
+	Sound se;
 
 public:
 	Block();

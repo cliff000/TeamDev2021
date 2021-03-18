@@ -29,6 +29,9 @@ void Arrow::init() {
 	col->setPos(0, 0);
 	col->setSize(80, 5);
 	img = Image("Resource/Image/arrow.png");
+	se = Sound("Resource/Sound/se_arrow.ogg");
+	se.changeVolume(180);
+	se.play(DX_PLAYTYPE_BACK, true);
 }
 
 void Arrow::update() {

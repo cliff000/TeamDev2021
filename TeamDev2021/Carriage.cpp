@@ -14,6 +14,9 @@ Carriage::Carriage()
 	col->setPos(-12, 0);
 	col->setSize(70, 240);
 	img = Image("Resource/Image/carriage.png");
+	se_damage = Sound("Resource/Sound/se_damage.ogg");
+	se_horse = Sound("Resource/Sound/se_horse_long.ogg");
+	se_horse.changeVolume(255);
 }
 
 
@@ -26,6 +29,7 @@ void Carriage::update() {
 	if (speedX != 0 || speedY != 0) {  //speed‚ª‚ ‚ê‚ÎˆÚ“®
 		x += speedX;
 		y += speedY;
+		se_horse.play(DX_PLAYTYPE_BACK, true);
 	}
 	else if(count++ >= 180){  //ƒ‰ƒ“ƒ_ƒ€‚ÉˆÚ“®æ‚ğŒˆ‚ß‚é
 		int rand = GetRand(100);
@@ -44,6 +48,7 @@ void Carriage::update() {
 		speedY = 0;
 		x = (int)nextX;
 		y = (int)nextY;
+		se_horse.stop();
 	}
 	else if (speedX == 0 && speedY == 0) {
 		speedX = (nextX - x) / 50.0;
@@ -82,6 +87,7 @@ void Carriage::hitAction(GameObject* other) {
 		}
 		hitCount = 1;
 		alpha = 158;
+		se_damage.play(DX_PLAYTYPE_BACK, true);
 	}
 		
 }

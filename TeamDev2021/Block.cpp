@@ -43,7 +43,8 @@ void Block::init() {
 	alpha = ALPHA_DEF;
 	col->setPos(0, 0);
 	col->setSize(50, 50);
-	//img = Image("Resource/Image/block.jpg");
+	se = Sound("Resource/Sound/se_shield.ogg");
+	se.play(DX_PLAYTYPE_BACK, true);
 }
 
 void Block::update() {

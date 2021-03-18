@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "Image.h"
+#include "Sound.h"
 
 class Carriage :
 	public GameObject
@@ -14,6 +15,8 @@ protected:
 	int hitCount = 0;
 	int alpha = 255;
 	Image img;
+	Sound se_damage;
+	Sound se_horse;
 
 public:
 	Carriage();
