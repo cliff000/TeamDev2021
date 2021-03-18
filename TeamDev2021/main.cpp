@@ -15,9 +15,9 @@ enum GameMode { Title, MainGame, Pause };
 #define LINE_NUM 5			//引くことのできる線の本数
 #define POINT_NUM 300		//引く線の座標を幾つ取るか
 #define LINE_LENGTH 500		//引くことのできる線の長さ
-#define TOTAL_LINE_LENGTH 5000   //引くことのできる線の長さの合計値
-#define FIRST_SPEED 5       //始めのスピード
-#define TIME_LIMIT 20*60		//制限時間
+#define TOTAL_LINE_LENGTH 2500   //引くことのできる線の長さの合計値
+#define FIRST_SPEED 3.5       //始めのスピード
+#define TIME_LIMIT 35*60		//制限時間
 int road_grHandle;		//地面のグラフィック
 double road_y;			//地面のy座標
 double speed;			//速さ
@@ -144,7 +144,7 @@ void MainGame_Init()
 	run_length = 0;			//走った距離の初期化
 	castle_grHandle = LoadGraph("Resource/Image/castle.png");
 	castle_y = 0;			//城のy座標の初期化
-	castle_length = speed * 15 * 60;	//城まで初期スピードで20秒走ると到達
+	castle_length = speed * 30 * 60;	//城まで初期スピードで30秒走ると到達
 	castle_flag = 0;		//城到達フラグの初期化
 	mouse_status = 0;
 	line_count = 1;	
@@ -187,10 +187,10 @@ void MainGame_Update()
 	if (timer <= TIME_LIMIT && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
 		road_y += speed;		//1フレームごとに地面をspeed分移動する
 
-		if (speed < FIRST_SPEED * 2)  //だんだん加速する
+		if (speed < FIRST_SPEED)  //だんだん加速する
 			speed += 0.001;
 		if (remain_length < TOTAL_LINE_LENGTH)  //書ける長さがだんだん回復する
-			remain_length += 1.0 * TOTAL_LINE_LENGTH / 10000;
+			remain_length += 1.0 * TOTAL_LINE_LENGTH / 2000;
 
 		if (road_y >= WINDOWSIZE_Y)		//地面の座標がWINDOWSIZE_Yを超えたら0に戻す
 			road_y = 0;
