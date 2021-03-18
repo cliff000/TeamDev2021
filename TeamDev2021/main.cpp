@@ -9,11 +9,12 @@
 #include <iostream>
 #include "mouse.h"
 
-enum GameMode { Title, MainGame };
+enum GameMode { Title, MainGame, Pause };
 
 #define LINE_NUM 5			//引くことのできる線の本数
-#define POINT_NUM 600		//引く線の座標を幾つ取るか
+#define POINT_NUM 300		//引く線の座標を幾つ取るか
 #define LINE_LENGTH 500		//引くことのできる線の長さ
+#define TOTAL_LINE_LENGTH 5000   //引くことのできる線の長さの合計値
 #define FIRST_SPEED 5       //始めのスピード
 #define TIME_LIMIT 20*60		//制限時間
 int road_grHandle;		//地面のグラフィック
@@ -31,7 +32,9 @@ int castle_length;		//城までの道のりの長さ
 int castle_flag;		//城到達フラグ、1で到達
 int title_grHandle;     //タイトルのグラフィック
 int title_y;            //タイトルのY座標
+int brightPause;        //ポーズ画面での背景の明るさ
 bool changeScene_Title_to_MainGame;  //タイトルからメインゲームへの移行フラグ
+bool changeScene_Pause_to_MainGame;  //ポーズからメインゲームへの移行フラグ
 int clear_screen;      //クリア時の描画先グラフィック
 int gameMode;           //ゲームの状態(タイトルかメインゲームか)
 int mouse_x[LINE_NUM][POINT_NUM];
@@ -44,6 +47,7 @@ double line_length[LINE_NUM];			//線の長さ
 int blend_alpha;			//画像などを透過でゆっくり浮き上がらせるための変数
 int FontHandle;			//クリア時、ゲームオーバー時のフォントデータの保存
 int scroll_bar_grHandle;	//馬車の現在地を示すスクロールバーのグラフィック
+double remain_length;       //線の残りの長さ
 
 void Title_Init();
 void Title_Update();
@@ -51,12 +55,16 @@ void Title_Draw();
 void MainGame_Init();
 void MainGame_Update();
 void MainGame_Draw();
+void Pause_Init();
+void Pause_Update();
+void Pause_Draw();
 void counter(int num, int x, int y, int block_exRate);
 void line_clear(int *mouse_x, int *mouse_y, int num, int *mouse_status, int *clear_timer, int frame);	//描画した線を消す関数、引数は先頭から消す線のx座標、y座標、座標の個数、書き始めを知るためにフレームを格納した変数、時間計測の変数、消すまでのフレーム数
 
 ObjectMgr* objectMgr = nullptr;
-Button* menu;
+Button *menu, *resume, *restart;
 Carriage* carriage;
+ObjectMgr* pauseObjectMgr = nullptr;
 
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -76,6 +84,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		else if (gameMode == MainGame) {
 			MainGame_Update();
 			MainGame_Draw();
+		}
+		else if (gameMode == Pause) {
+			Pause_Update();
+			Pause_Draw();
 		}
 	}
 	DxLib_End(); // DXライブラリ終了処理
@@ -128,7 +140,7 @@ void MainGame_Init()
 	mouse_status = 0;
 	line_count = 1;	
 	blend_alpha = 0;
-	FontHandle = CreateFontToHandle("Georgia", 32, -1, DX_FONTTYPE_ANTIALIASING);
+	FontHandle = CreateFontToHandle("Georgia", 64, -1, DX_FONTTYPE_ANTIALIASING);
 	scroll_bar_grHandle = LoadGraph("Resource/Image/scroll_bar.png");
 
 	for (int i = 0; i < LINE_NUM; i++) {
@@ -136,6 +148,7 @@ void MainGame_Init()
 		line_clear_timer[i] = 0;
 	}
 	clear_screen = MakeScreen(WINDOWSIZE_X, WINDOWSIZE_Y, true); //クリア画面用の描画先
+	remain_length = TOTAL_LINE_LENGTH;
 	
 	
 	//オブジェクトの初期化
@@ -144,7 +157,7 @@ void MainGame_Init()
 		objectMgr = nullptr;
 	}
 	objectMgr = new ObjectMgr();
-	menu = new Button(75, 50, 100, 50, "メニュー");
+	menu = new Button(75, 50, 100, 50, "Menu");
 	carriage = new Carriage();
 	objectMgr->add(carriage);
 	objectMgr->add(new EnemyFactory());
@@ -154,8 +167,16 @@ void MainGame_Init()
 
 void MainGame_Update()
 {
+	if (gameMode != MainGame) return; //gemeModeが違うと描画しない
+
 	if (timer <= TIME_LIMIT && castle_flag == 0) {		//時間制限内かつ城に到達していないとき
 		road_y += speed;		//1フレームごとに地面をspeed分移動する
+
+		if (speed < FIRST_SPEED * 2)  //だんだん加速する
+			speed += 0.001;
+		if (remain_length < TOTAL_LINE_LENGTH)  //書ける長さがだんだん回復する
+			remain_length += 1.0 * TOTAL_LINE_LENGTH / 10000;
+
 		if (road_y >= WINDOWSIZE_Y)		//地面の座標がWINDOWSIZE_Yを超えたら0に戻す
 			road_y = 0;
 		timer++;				//1フレームごとに1追加
@@ -166,7 +187,7 @@ void MainGame_Update()
 			objectMgr->update();
 		}
 		//マウスの処理
-		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < POINT_NUM && line_length[line_count - 1] < LINE_LENGTH) {			//マウスの左クリックが押された時
+		if (GetMouseInput() & MOUSE_INPUT_LEFT && mouse_status < POINT_NUM && line_length[line_count - 1] < LINE_LENGTH && remain_length >= line_length[line_count - 1]) {			//マウスの左クリックが押された時
 			mouse_status++;									//マウスの左クリックが押されたフレーム数を測定
 			if (mouse_status == 1) {						//現在引いている線の本数を保存
 				line_count++;
@@ -189,6 +210,8 @@ void MainGame_Update()
 		else if (!(GetMouseInput() & MOUSE_INPUT_LEFT)) {
 			if (line_count > 0 && mouse_status > 0) {
 				objectMgr->add(new BlockFactory(mouse_x[line_count - 1], mouse_y[line_count - 1], mouse_status));
+				remain_length -= line_length[line_count - 1];
+				if (remain_length < 0)  remain_length = 0;
 			}
 			line_length[line_count - 1] = 0;
 			mouse_status = 0;
@@ -241,11 +264,16 @@ void MainGame_Update()
 		}
 	}
 
-
-
 	
 	if (castle_flag == 0)
 		objectMgr->update(); //オブジェクトのアップデート
+
+	//メニューボタンが押された場合の処理
+	if (menu->isClicked()) {
+		gameMode = Pause;
+		Pause_Init();
+	}
+
 }
 
 void MainGame_Draw()
@@ -265,14 +293,15 @@ void MainGame_Draw()
 		for (int i = 1; i < mouse_status_tmp[j] - 1; i++)
 			if (mouse_status <= POINT_NUM){
 				//光ってる感じの線に見せたい
+				int color = 0xFE44FE;
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 12);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 10);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 12);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 10);
 				SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 8);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 6);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 4);
-				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], 0xaa3333, 2);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 8);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 6);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 4);
+				DrawLineAA(mouse_x[j][i - 1], mouse_y[j][i - 1], mouse_x[j][i], mouse_y[j][i], color, 2);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 			}
 	/*counter(mouse_status_tmp[0], WINDOWSIZE_X - 100, 100, 2);
@@ -286,12 +315,14 @@ void MainGame_Draw()
 	//描くことができる線の残りの長さ(仮)
 	DrawBox(WINDOWSIZE_X - 200, 500, WINDOWSIZE_X - 50, 530, GetColor(255, 255, 255), TRUE);
 	DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(255, 50, 50), TRUE);
-	for (int i = 0; i < LINE_NUM; i++)
+	DrawBox(WINDOWSIZE_X - 195 + 140 * (remain_length / TOTAL_LINE_LENGTH), 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
+	/*for (int i = 0; i < LINE_NUM; i++)
 	{
 		DrawBox(WINDOWSIZE_X - 55 - 110 * (line_length[i] / LINE_LENGTH), 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
 	}
 	if (mouse_status >= POINT_NUM || line_length[line_count - 1] >= LINE_LENGTH)
-		DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);
+		DrawBox(WINDOWSIZE_X - 195, 505, WINDOWSIZE_X - 55, 525, GetColor(200, 200, 200), TRUE);*/
+	
 
 	if (castle_flag == 0) {
 		//城までの距離
@@ -313,11 +344,12 @@ void MainGame_Draw()
 		DrawRotaGraph(WINDOWSIZE_X / 2, castle_y - WINDOWSIZE_Y / 2, 1, 0, castle_grHandle, 1); //城の描画
 		if (castle_y >= WINDOWSIZE_Y) {
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, blend_alpha);
-			DrawStringToHandle(WINDOWSIZE_X / 2 - 105, WINDOWSIZE_Y / 2 - 16, "GAME CLEAR", 0xffffff, FontHandle);
+			DrawStringToHandle(WINDOWSIZE_X / 2 - 195, WINDOWSIZE_Y / 2 - 50, "GAME CLEAR", 0x000000, FontHandle);
+			DrawStringToHandle(WINDOWSIZE_X / 2 - 200, WINDOWSIZE_Y / 2 - 55, "GAME CLEAR", 0xffffff, FontHandle);
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 			if (blend_alpha >= 255) {
-				DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
-				DrawFormatString(WINDOWSIZE_X - 200, 100, 0xffffff, "Time : %.2f", (double)timer / 60);
+				DrawString(WINDOWSIZE_X / 2 - 80, WINDOWSIZE_Y - 120, "Click to back to title", 0xffffff);
+				DrawFormatString(WINDOWSIZE_X - 180, 50, 0xffffff, "Time : %.2f", (double)timer / 60);
 			}
 		}
 
@@ -329,11 +361,10 @@ void MainGame_Draw()
 		DrawBox(0, 0, WINDOWSIZE_X, WINDOWSIZE_Y, 0x000000, TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 		if (blend_alpha >= 255) {
-			DrawStringToHandle(WINDOWSIZE_X / 2 - 100, WINDOWSIZE_Y / 2 - 16, "GAME OVER", 0xffffff, FontHandle);
-			DrawString(WINDOWSIZE_X / 2, WINDOWSIZE_Y - 100, "Click to back to title", 0xffffff);
+			DrawStringToHandle(WINDOWSIZE_X / 2 - 195, WINDOWSIZE_Y / 2 - 50, "GAME OVER", 0xffffff, FontHandle);
+			DrawString(WINDOWSIZE_X / 2 - 80, WINDOWSIZE_Y - 120, "Click to back to title", 0xffffff);
 		}
 	}
-
 }
 
 void counter(int num, int x, int y, int block_exRate)		//数字を表示する関数、引数は先頭から表示する数字、x座標、y座標、表示倍率
@@ -356,5 +387,54 @@ void line_clear(int *mouse_x, int *mouse_y, int num, int *mouse_status, int *cle
 				mouse_y[i] = 0;
 			}
 		}
+	}
+}
+
+
+void Pause_Init() {
+	changeScene_Pause_to_MainGame = false;
+	brightPause = 96;
+
+	//オブジェクトの初期化
+	if (pauseObjectMgr != nullptr) {
+		delete pauseObjectMgr;
+		pauseObjectMgr = nullptr;
+	}
+	pauseObjectMgr = new ObjectMgr();
+	resume = new Button(WINDOWSIZE_X / 2, WINDOWSIZE_Y / 2 - 50, 150, 50, "Continue");
+	restart = new Button(WINDOWSIZE_X / 2, WINDOWSIZE_Y / 2 + 50, 150, 50, "Retry");
+	pauseObjectMgr->add(resume);
+	pauseObjectMgr->add(restart);
+}
+
+void Pause_Update() {
+	if (changeScene_Pause_to_MainGame == 0) {
+		pauseObjectMgr->update();
+	}
+
+	//ボタンが押された場合
+	if (resume->isClicked()) {
+		changeScene_Pause_to_MainGame = true;
+	}
+	if (restart->isClicked()) {
+		MainGame_Init();
+		gameMode = MainGame;
+	}
+
+	//ポーズ解除の処理
+	if (changeScene_Pause_to_MainGame) {
+		brightPause += 5;
+	}
+	if (brightPause >= 255) {
+		gameMode = MainGame;
+	}
+}
+
+void Pause_Draw() {
+	SetDrawBright(brightPause, brightPause, brightPause);
+	MainGame_Draw();
+	SetDrawBright(255, 255, 255);
+	if (changeScene_Pause_to_MainGame == 0) {
+		pauseObjectMgr->draw();
 	}
 }

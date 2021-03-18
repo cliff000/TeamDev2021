@@ -36,7 +36,7 @@ void Spotter::update() {
 	if (x <= WINDOWSIZE_X*0.1 || x >= WINDOWSIZE_X*0.9)
 		x += 3 - side * 6;
 
-	if (count++ >= 120) {
+	if (count++ >= 90) {
 		mgr->add(new Arrow(side));
 		count = 0;
 	}
